@@ -84,14 +84,11 @@ VSCode will build the dockerfile inside of `.devcontainer` for you.  If you open
 
 ### Update the template with your code
 
-1. Specify the repositories you want to include in your workspace in `src/ros2.repos` or delete `src/ros2.repos` and develop directly within the workspace.
-2. If you are using a `ros2.repos` file, import the contents `Terminal->Run Task..->import from workspace file`
-3. Install dependencies `Terminal->Run Task..->install dependencies`
-4. (optional) Adjust scripts to your liking.  These scripts are used both within tasks and CI.
-   * `setup.sh` The setup commands for your code.  Default to import workspace and install dependencies.
+1. If you are using a `ros2.repos` file, import the contents `Terminal->Run Task..->import from workspace file`
+2. (optional) Adjust scripts to your liking.  These scripts are used both within tasks and CI.
    * `build.sh` The build commands for your code.  Default to `--merge-install` and `--symlink-install`
    * `test.sh` The test commands for your code.
-5. Develop!
+3. Develop!
 
 
 ## FAQ
@@ -144,25 +141,60 @@ If you want to access the vGPU through WSL2, you'll need to add additional compo
 	},
 ```
 
-### Repos are not showing up in VS Code source control
+# Adding a Personal Access Token (PAT) to the Repository for Workflow Permissions
 
-This is likely because vscode doesn't necessarily know about other repositories unless you've added them directly. 
+## Step 1: Generate a Personal Access Token
 
-```
-File->Add Folder To Workspace
-```
+Follow these steps to create a PAT in GitHub:
 
-![Screenshot-26](https://github.com/athackst/vscode_ros2_workspace/assets/6098197/d8711320-2c16-463b-9d67-5bd9314acc7f)
+### Navigate to GitHub Settings
 
+1. Log into your **GitHub account**.
+2. In the upper-right corner of any page, click your **profile photo**, then click **Settings**.
 
-Or you've added them as a git submodule.
+### Access Developer Settings
 
-![Screenshot-27](https://github.com/athackst/vscode_ros2_workspace/assets/6098197/8ebc9aac-9d70-4b53-aa52-9b5b108dc935)
+1. In the left sidebar, click **Developer settings**.
 
-To add all of the repos in your *.repos file, run the script
+### Generate a New Token
 
-```bash
-python3 .devcontainer/repos_to_submodules.py
-```
+1. Click on **Personal access tokens**.
+2. Click on **Generate new token**.
+3. Give your token a descriptive name under **Note** (e.g., "VSCode ROS2 Workflow").
+4. Select the scopes or permissions you'd like to grant this token. For workflows, typically `repo` and `workflow` are sufficient.
+5. Click **Generate token**.
 
-or run the task titled `add submodules from .repos`
+### Copy the Token
+
+- **Important**: Copy your new personal access token. You won’t be able to see it again!
+
+## Step 2: Add the PAT to Your Repository's Secrets
+
+### Navigate to Your Repository
+
+1. Go to the **GitHub repository** where you want to use the PAT.
+
+### Access Repository Settings
+
+1. Click on **Settings** in the repository.
+
+### Manage Secrets
+
+1. In the left sidebar, click on **Secrets and variables** then select **Actions**.
+
+### Add a New Secret
+
+1. Click on **New repository secret**.
+2. Name the secret (e.g., `PAT`) and paste the token you copied earlier into the **Value** field.
+3. Click **Add secret**.
+
+## Step 3: Use the PAT in Your Workflows
+
+Modify your `.github/workflows/ros.yaml` file to use the secret token:
+
+```yaml
+steps:
+  - name: Checkout repo
+    uses: actions/checkout@v2
+    with:
+      token: ${{ secrets.PAT }}
